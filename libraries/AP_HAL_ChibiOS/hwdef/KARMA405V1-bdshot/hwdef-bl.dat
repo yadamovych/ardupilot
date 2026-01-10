@@ -1,0 +1,30 @@
+# hw definition file for processing by chibios_pins.py
+# minimal bootloader for KARMA405V1 (UART1)
+
+MCU STM32F4xx STM32F405xx
+
+APJ_BOARD_ID 1190
+
+OSCILLATOR_HZ 8000000
+FLASH_SIZE_KB 1024
+
+# bootloader at zero offset
+FLASH_RESERVE_START_KB 0
+
+# LEDs
+PB0 LED_BOOTLOADER OUTPUT LOW
+PA14 LED_ACTIVITY OUTPUT LOW
+define HAL_LED_ON 0
+
+# firmware starts after bootloader
+FLASH_BOOTLOADER_LOAD_KB 48
+
+# order of UARTs (USART1)
+SERIAL_ORDER USART1
+PB6 USART1_TX USART1
+PB7 USART1_RX USART1
+
+# CS pins to keep high
+PC14 OSD1_CS CS
+PB12 SDCARD1_CS CS
+PA4 GYRO1_CS CS
