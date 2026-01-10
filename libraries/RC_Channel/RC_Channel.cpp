@@ -251,6 +251,9 @@ const AP_Param::GroupInfo RC_Channel::var_info[] = {
     // @Values{Plane}: 183: AUTOLAND mode
     // @Values{Plane}: 184: System ID Chirp
     // @Values{Copter, Rover, Plane, Blimp, Sub}:  185:Mount Roll/Pitch Lock
+    // @Values{Copter, Rover, Plane}: 197:VTX Preset
+    // @Values{Copter, Rover, Plane}: 198:VTX Band
+    // @Values{Copter, Rover, Plane}: 199:VTX Channel
     // @Values{Rover}: 201:Roll
     // @Values{Rover}: 202:Pitch
     // @Values{Rover}: 207:MainSail
@@ -593,15 +596,15 @@ bool RC_Channel::read_6pos_switch(int8_t& position)
         return false;  // This is an error condition
     }
 
-    if (pulsewidth < 1231) {
+    if (pulsewidth < 1090) {
         position = 0;
-    } else if (pulsewidth < 1361) {
+    } else if (pulsewidth < 1294) {
         position = 1;
-    } else if (pulsewidth < 1491) {
+    } else if (pulsewidth < 1499) {
         position = 2;
-    } else if (pulsewidth < 1621) {
+    } else if (pulsewidth < 1704) {
         position = 3;
-    } else if (pulsewidth < 1750) {
+    } else if (pulsewidth < 1909) {
         position = 4;
     } else {
         position = 5;
@@ -726,6 +729,9 @@ void RC_Channel::init_aux_function(const AUX_FUNC ch_option, const AuxSwitchPos 
 #endif
 #if AP_VIDEOTX_ENABLED
     case AUX_FUNC::VTX_POWER:
+    case AUX_FUNC::VTX_PRESET:
+    case AUX_FUNC::VTX_BAND:
+    case AUX_FUNC::VTX_CHANNEL:
 #endif
 #if AP_OPTICALFLOW_CALIBRATOR_ENABLED
     case AUX_FUNC::OPTFLOW_CAL:
@@ -973,7 +979,38 @@ bool RC_Channel::read_aux()
     } else if (_option == AUX_FUNC::VTX_POWER) {
         int8_t position;
         if (read_6pos_switch(position)) {
+            GCS_SEND_TEXT(MAV_SEVERITY_DEBUG, "VTX switch position: %u\n", position);
             AP::vtx().change_power(position);
+            return true;
+        }
+        return false;
+    } else if (_option == AUX_FUNC::VTX_CHANNEL) {
+        int8_t position;
+        if (read_6pos_switch(position)) {
+            AP::vtx().set_channel(position);
+            AP::vtx().set_configured_channel(AP::vtx().get_channel());
+            AP::vtx().set_configured_band(AP::vtx().get_band());
+            AP::vtx().update_configured_frequency();
+            return true;
+        }
+        return false;
+    } else if (_option == AUX_FUNC::VTX_BAND) {
+        int8_t position;
+        if (read_6pos_switch(position)) {
+            AP::vtx().set_band(position);
+            AP::vtx().set_configured_channel(AP::vtx().get_channel());
+            AP::vtx().set_configured_band(AP::vtx().get_band());
+            AP::vtx().update_configured_frequency();
+            return true;
+        }
+        return false;
+    } else if (_option == AUX_FUNC::VTX_PRESET) {
+        int8_t position;
+        if (read_6pos_switch(position)) {
+            AP::vtx().set_preset(position);
+            AP::vtx().set_configured_channel(AP::vtx().get_channel());
+            AP::vtx().set_configured_band(AP::vtx().get_band());
+            AP::vtx().update_configured_frequency();
             return true;
         }
         return false;
